@@ -32,7 +32,7 @@ Again, as per [formative.vim](https://github.com/frasercrmck/formative.vim), 'qu
 #### [GIPHY](https://giphy.com/)
 
 #TODO
-![](https://cloud.githubusercontent.com/assets/1158422/5235521/00c36298-77fc-11e4-88f7-e23735c08e0e.gif)
+![]()
 
 ## Installation
 

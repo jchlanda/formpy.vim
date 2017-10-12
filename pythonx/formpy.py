@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from __future__ import print_function
 """ ClangFormat functionality with YetAnotherPythonFormatter with text-objects.
 Source repository: https://github.com/jchlanda/formpy.vim
