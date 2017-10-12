@@ -1,0 +1,10 @@
+formpy	formpy.txt	/*formpy*
+formpy-options	formpy.txt	/*formpy-options*
+formpy.vim	formpy.txt	/*formpy.vim*
+g:formpy_file_key	formpy.txt	/*g:formpy_file_key*
+g:formpy_ins_key	formpy.txt	/*g:formpy_ins_key*
+g:formpy_line_key	formpy.txt	/*g:formpy_line_key*
+g:formpy_nor_key	formpy.txt	/*g:formpy_nor_key*
+g:formpy_vis_key	formpy.txt	/*g:formpy_vis_key*
+formpy-formative-integration	formpy.txt	/*formpy-formative-integration*
+formpy-license	formpy.txt	/*formpy-license*
