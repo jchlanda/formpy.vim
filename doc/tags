@@ -1,6 +1,8 @@
 formpy	formpy.txt	/*formpy*
 formpy-options	formpy.txt	/*formpy-options*
 formpy.vim	formpy.txt	/*formpy.vim*
+g:formpy_style	formpy.txt	/*g:formpy_style*
+g:formpy_logging	formpy.txt	/*g:formpy_logging*
 g:formpy_file_key	formpy.txt	/*g:formpy_file_key*
 g:formpy_ins_key	formpy.txt	/*g:formpy_ins_key*
 g:formpy_line_key	formpy.txt	/*g:formpy_line_key*

@@ -20,10 +20,10 @@ unfortunate thing is the way *object-select* and *text-objects* work with
 python codebase, so some of your favourite |text-objects| might not work.
 
 The plugin provides the same set of special mappings as |formative|, namely:
-    <C-j>2j           - `YAPF` 2 lines downwards
-    <C-j>ap           - `YAPF` around the current |paragraph|
-    <C-j>k            - `YAPF` the current line (quickly)
-    <C-j>u            - `YAPF` the whole file
+    <C-k>2j           - `YAPF` 2 lines downwards
+    <C-k>ap           - `YAPF` around the current |paragraph|
+    <C-k>k            - `YAPF` the current line (quickly)
+    <C-k>u            - `YAPF` the whole file
 
 The plugin is distributed with its own runner, that handles all the |vim| <->
 `YAPF` communication. Prior to using the plugin, please make sure that `YAPF` is
@@ -35,10 +35,10 @@ OPTIONS                                                         *formpy-options*
                                                                 *g:formpy_style*
 Specifies the formatting style, either by the name (for example `pep8` or
 `goole`), or by providing a fully qualified file name containing style
-settings. For full detail details on available formatting options please run:
+settings. For full details on the available formatting options please run:
 `yapf --help` or `yapf --style-help`
 Default: `pep`. Example: >
-    let g:formpy_style = /path/to/my/your_style,yapf
+    let g:formpy_style = /path/to/your_style.yapf
 
 <                                                              *g:formpy_logging*
 Enable logging of debug output. Please note, that logging only works on
@@ -48,24 +48,24 @@ Default: `0`. Example: >
     let g:formpy_logging = 1
 <                                                              *g:formpy_nor_key*
 Specifies the key to invoke yapf in |normal| mode.
-Default: `'<C-j>'`. Example: >
+Default: `'<C-k>'`. Example: >
     let g:formpy_nor_key = '<leader>c'
 <                                                              *g:formpy_vis_key*
 Specifies the key to invoke yapf in |visual| mode.
-Default: `'<C-j>'`. Example: >
+Default: `'<C-k>'`. Example: >
     let g:formpy_vis_key = '<leader>c'
 <                                                              *g:formpy_ins_key*
 Specifies the key to invoke yapf in |insert| mode.
-Default: `'<C-j>'`. Example: >
+Default: `'<C-k>'`. Example: >
     let g:formpy_ins_key = '<leader>c'
 <                                                             *g:formpy_line_key*
 Specifies the key to invoke yapf in |normal| mode on the current line.
 Intended to model the functionality of |c| -> |cc|, |d| -> |dd|, etc.
-Default: `'<C-j>k'`. Example: >
+Default: `'<C-k>k'`. Example: >
     let g:formpy_line_key = '<leader>cc'
 <                                                             *g:formpy_file_key*
 Specifies the key to invoke yapf in |normal| mode on the current file.
-Default: `'<C-j>u'`. Example: >
+Default: `'<C-k>u'`. Example: >
     let g:formpy_file_key = '<leader>d'
 <
 ==============================================================================
