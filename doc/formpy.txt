@@ -79,10 +79,6 @@ get used to the mappings provided by formative and want to have the same
 mappings working in python. By default, whichever plugin is loaded last will,
 be responsible for formatting, regardless of the |filetype|. The solution
 provided here, is to have the desired mapping redefined in |after-directory|.
-If you already maintain entries for `c`, `cpp`, `python` you can extend those
-with the content of the corresponding files from
-`<formpy.vim>/after_ftplugin`, if not, copying the content of the directory to
-`<vim_root>/after/ftplugin` will do the trick.
 
 ==============================================================================
 LICENSE                                                         *formpy-license*
