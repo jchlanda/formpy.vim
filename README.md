@@ -17,6 +17,9 @@ would still pass the block to [YAPF](https://github.com/google/yapf), but will h
 
 [formative.vim](https://github.com/frasercrmck/formative.vim) is great, in fact it is so good, that I had to write this plugin. Once you start using [formative.vim](https://github.com/frasercrmck/formative.vim), there is no way back, you have to have formatting done automatically for you. And it is XXI century, the time of manually inserting spaces (no tabs, no!) is over. The problem arises, when you get used to the mappings provided by [formative.vim](https://github.com/frasercrmck/formative.vim) and want to have the same mappings working in python. By default, whichever plugin is loaded last will, be responsible for formatting, regardless of the buffer's filetype. The solution provided here, is to have the desired mapping redefined in after-directory. If you already maintain entries for `c`, `cpp`, `python` you can extend those with the content of the corresponding files from [after_ftplugin](https://github.com/jchlanda/formpy.vim/tree/master/after_ftplugin), if not, copying the content of the directory to `<vim_root>/after/ftplugin` will do the trick.
 
+An example of two buffers (`cpp` and `py`) calling into [formative.vim](https://github.com/frasercrmck/formative.vim) and formpy respectively.
+![](https://raw.githubusercontent.com/jchlanda/formpy.vim/gif/assets/formpy_cpp_py.640.gif)
+
 #### Requirements
 
 Unlike [formative.vim](https://github.com/frasercrmck/formative.vim), formpy comes with its own python runner, so ther is no need to point it to any external files. However, you will have to make sure that [YAPF](https://github.com/google/yapf) is installed and available on the path of your system. Formpy also requires vim compiled with python support.
@@ -31,8 +34,7 @@ Again, as per [formative.vim](https://github.com/frasercrmck/formative.vim), 'qu
 
 #### [GIPHY](https://giphy.com/)
 
-#TODO
-![]()
+![](https://raw.githubusercontent.com/jchlanda/formpy.vim/gif/assets/formpy_py.640.gif)
 
 ## Installation
 
@@ -69,7 +71,10 @@ All of the variables used by formpy to construct specific key mappings can be ov
 
 All of the variables used by formpy to construct specific key mappings can be overridden, please see:
 
-[YAPF](https://github.com/google/yapf) allows for different formatting styles to be used, formpy exposes this functionality through `g:formpy_style` option. It can be set to either the name of the desired formatting style (for example `pep8` or `goole`), or to the fully qualified file name containing style settings. For full details on the available formatting options please run: `yapf --help` or `yapf --style-help`. A sample formatting style file is included [here](https://github.com/jchlanda/formpy.vim/tree/master/doc/.style.yapf)
+[YAPF](https://github.com/google/yapf) allows for different formatting styles to be used, formpy exposes this functionality through `g:formpy_style` option. It can be set to either the name of the desired formatting style (for example `pep8` or `goole`), or to the fully qualified file name containing style settings. For full details on the available formatting options please run: `yapf --help` or `yapf --style-help`.
+
+A sample formatting style file is included [here](https://github.com/jchlanda/formpy.vim/tree/master/doc/.style.yapf).
+
 Formpy defaults to: `pep`. To change it:
 
     let g:formpy_style = /path/to/your_style.yapf
