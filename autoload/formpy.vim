@@ -24,28 +24,29 @@ else
 endif
 
 " Enable/disable logging.
-if !exists('g:formpy_logging')
+if !exists("g:formpy_logging")
     let g:formpy_logging = 0
 endif
 " Absolute path of script file:
 let g:formpy_source =
-  \ get( g:, 'formpy_source', expand('<sfile>:p:h')."/../pythonx/formpy.py")
+  \ get( g:, "formpy_source", expand("<sfile>:p:h")."/../pythonx/formpy.py")
 " Style for python:
-if !exists('g:formpy_style')
-  let g:formpy_style = get( g:, 'formpy_style', 'pep8')
+if !exists("g:formpy_style")
+  let g:formpy_style = get( g:, "formpy_style", "pep8")
 endif
 
 " }}}
 
 " Functions {{{
 function! formpy#FormPy(type, ...)
+  let s:formpy_filetype = expand("%:filetyp")
   if a:0                     " Invoked from Visual mode.
     let s:beg = "'<"
     let s:end = "'>"
-  elseif a:type == 'file'    " Invoked on the whole file.
+  elseif a:type == "file"    " Invoked on the whole file.
     let s:beg = "1"
     let s:end = "$"
-  elseif a:type == 'oneline' " Invoked on one line only.
+  elseif a:type == "oneline" " Invoked on one line only.
     let s:beg = "."
     let s:end = "."
   else                       " Invoked from Normal mode.

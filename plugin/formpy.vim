@@ -14,18 +14,18 @@ if exists("g:loaded_formpy") || &cp
   finish
 endif
 
-if !has('python')
+if !has("python")
   echoerr "formpy reuires Python to be enabled."
 endif
 
 let g:loaded_formpy = 1
 " }}}
 
-let g:formpy_nor_key  = get( g:, 'formpy_nor_key', '<C-k>')
-let g:formpy_vis_key  = get( g:, 'formpy_vis_key', '<C-k>')
-let g:formpy_ins_key  = get( g:, 'formpy_ins_key', '<C-k>')
-let g:formpy_line_key = get( g:, 'formpy_line_key', '<C-k>k')
-let g:formpy_file_key = get( g:, 'formpy_file_key', '<C-k>u')
+let g:formpy_nor_key  = get( g:, "formpy_nor_key", "<C-k>")
+let g:formpy_vis_key  = get( g:, "formpy_vis_key", "<C-k>")
+let g:formpy_ins_key  = get( g:, "formpy_ins_key", "<C-k>")
+let g:formpy_line_key = get( g:, "formpy_line_key", "<C-k>k")
+let g:formpy_file_key = get( g:, "formpy_file_key", "<C-k>u")
 
 " Key mappings {{{
 execute "nnoremap <silent> " . g:formpy_nor_key .
