@@ -20,6 +20,47 @@ import sys
 import vim
 import logging
 
+# TODO:
+# - errors vs print outs vs raising exceptions,
+# - create binary object, that gandles executable setup and checks, parameters
+#   and possibly a subrapcess call.
+
+class FileTypeException(Exception):
+    def __init__(self, file_type):
+        self.file_type = file_type
+#try:
+#    raise FileTypeException("Foo!")
+#except FileTypeException as e:
+#    print e.file_type
+
+class BinaryNotFoundException(Exception):
+    def __init__(self, binary):
+        self.binary = binary
+
+class Binary:
+    def __init__(self, file_type):
+        # Validate file type.
+        self.file_type = file_type
+        if self.file_type == 'python':
+            self.binary = 'yapf'
+            self.line_split = "-"
+        elif self.file_type == 'cmake':
+            self.binary = 'cmake-format'
+            self.line_split = "-"
+        elif self.file_type in ['c', 'cpp']:
+            self.binary = 'clang-format'
+            self.line_split = ","
+        else:
+            sys.stderr.write(" -------> 2 file_type: {0}\n".format(self.file_type))
+            raise FileTypeException(file_type)
+
+        # Check if appropriate formatter is available.
+        try:
+            dev_null = open(os.devnull, 'w')
+            subprocess.call(
+                [self.binary, '--help'], stdout=dev_null, stderr=dev_null)
+        except OSError as e:
+            raise BinaryNotFoundException(self.binary)
 
 class Formatter:
     """ Formatter - handle all formatting tasks.
@@ -30,19 +71,30 @@ class Formatter:
     """
 
     def __init__(self):
-        self.lineSplit = "-"
         self.lines = None
-        self.lineStart = None
-        self.lineEnd = None
+        self.line_start = None
+        self.line_end = None
         self.encoding = None
         self.buffer = None
         self.text = None
         self.cursor = None
-        self.formattedLines = None
+        self.formatted_lines = None
+        sys.stderr.write(" -------> woof: {0}\n".format(self.__vimEval('s:formpy_filetype')))
+        self.file_type = self.__vimEval('s:formpy_filetype')
+        self.enable_logging = 1 == self.__vimEval(
+            'g:formpy_logging') and os.path.exists("/tmp")
+        try:
+            sys.stderr.write(" -------> 1 file_type: {0}\n".format(self.file_type))
+            self.binary = Binary(self.file_type)
+        except FileTypeException as fte:
+          raise fte
+        except BinaryNotFoundException as bnfe:
+          raise bnfe
+        except Exception as e:
+            # TODO: Handle this.
+            raise ValueError('Something went wrong\n')
         # Only log if on systems that support /tmp dir (and when user asked for
         # it).
-        self.enableLogging = 1 == self.__vimEval(
-            'g:formpy_logging') and os.path.exists("/tmp")
 
     def __vimEval(self, name):
         """ A wrapper around vim eval.
@@ -59,10 +111,10 @@ class Formatter:
         """
         self.lines = self.__vimEval('l:lines')
         if not self.lines:
-            self.lineStart = vim.current.range.start + 1
-            self.lineEnd = vim.current.range.end + 1
-            self.lines = '%s%s%s' % (self.lineStart, self.lineSplit,
-                                     self.lineEnd)
+            self.line_start = vim.current.range.start + 1
+            self.line_end = vim.current.range.end + 1
+            self.lines = '%s%s%s' % (self.line_start, self.line_split,
+                                     self.line_end)
 
     def __loadBuffer(self):
         """ Load current vim buffer.
@@ -80,20 +132,20 @@ class Formatter:
         """ Apply the formatting.
         Go over all the lines and replace the original object with the formatted one.
         """
-        lines = self.formattedLines[0:]
+        lines = self.formatted_lines[0:]
         update = difflib.SequenceMatcher(None, vim.current.buffer, lines)
-        if self.enableLogging:
+        if self.enable_logging:
             for line in lines:
                 logging.debug(line)
         for op in reversed(update.get_opcodes()):
             if op[0] is not 'equal':
-                if op[1] in range(self.lineStart - 1, self.lineEnd):
-                    if self.enableLogging:
+                if op[1] in range(self.line_start - 1, self.line_end):
+                    if self.enable_logging:
                         logging.debug('updating')
                         logging.debug(lines[op[3]:op[4]])
                     vim.current.buffer[op[1]:op[2]] = lines[op[3]:op[4]]
                 else:
-                    if self.enableLogging:
+                    if self.enable_logging:
                         logging.debug('Not in range {0}, not updating'.format(
                             self.lines))
                         logging.debug('Vim.current.range.start: {0}'.format(
@@ -110,7 +162,7 @@ class Formatter:
         self.__setLines()
         self.__loadBuffer()
 
-        if self.enableLogging:
+        if self.enable_logging:
             logging.basicConfig(
                 filename="/tmp/formpy-format.log",
                 level=logging.DEBUG,
@@ -124,10 +176,9 @@ class Formatter:
 
         # Construct the command.
         style = self.__vimEval('g:formpy_style')
-        if self.enableLogging:
+        if self.enable_logging:
             logging.debug(style)
-        binary = 'yapf'
-        command = [binary, '--style', style, '--lines', self.lines]
+        command = [self.binary, '--style', style, '--lines', self.lines]
 
         # Call yapf.
         p = subprocess.Popen(
@@ -146,20 +197,28 @@ class Formatter:
                 file=sys.stderr)
             return
         if not stdout:
-            if self.enableLogging:
+            if self.enable_logging:
                 logging.debug("Stdout.")
             print(
                 "No output from the formatter (crashed?).\nPlease report the bug.\n"
             )
             return
         else:
-            self.formattedLines = stdout.decode(self.encoding).split('\n')
+            self.formatted_lines = stdout.decode(self.encoding).split('\n')
             self.__postProcessDiff()
 
 
 def main(argv):
-    F = Formatter()
-    F.executeFormat()
+    try:
+        F = Formatter()
+        F.executeFormat()
+    except FileTypeException as fte:
+      sys.stderr.write(" -------> FTE: {0}\n".format(fte.file_type))
+    except BinaryNotFoundException as bnfe:
+      sys.stderr.write(" -------> BNFE: {0}\n".format(bnfe.binary))
+    else:
+        # TODO: Handle this.
+        raise ValueError('Something went wrong\n')
     pass
 
 

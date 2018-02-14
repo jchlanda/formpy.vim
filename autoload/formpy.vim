@@ -39,7 +39,7 @@ endif
 
 " Functions {{{
 function! formpy#FormPy(type, ...)
-  let s:formpy_filetype = expand("%:filetyp")
+  let s:formpy_filetype = &filetype
   if a:0                     " Invoked from Visual mode.
     let s:beg = "'<"
     let s:end = "'>"
