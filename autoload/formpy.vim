@@ -31,8 +31,12 @@ endif
 let g:formpy_source =
   \ get( g:, "formpy_source", expand("<sfile>:p:h")."/../pythonx/formpy.py")
 " Style for python:
-if !exists("g:formpy_style")
-  let g:formpy_style = get( g:, "formpy_style", "pep8")
+if !exists("g:formpy_style_python")
+  let g:formpy_style_python = get( g:, "formpy_style_python", "pep8")
+endif
+" Style for c-language family:
+if !exists("g:formpy_style_c")
+  let g:formpy_style_c = get( g:, "formpy_style_c", "LLVM")
 endif
 
 " }}}
@@ -50,6 +54,7 @@ function! formpy#FormPy(type, ...)
     let s:beg = "."
     let s:end = "."
   else                       " Invoked from Normal mode.
+    echo " NORMAL"
     let s:beg = "'["
     let s:end = "']"
   endif

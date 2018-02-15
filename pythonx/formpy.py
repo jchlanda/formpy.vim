@@ -19,11 +19,13 @@ import subprocess
 import sys
 import vim
 import logging
+from enum import Enum
 
 # TODO:
 # - errors vs print outs vs raising exceptions,
-# - create binary object, that gandles executable setup and checks, parameters
-#   and possibly a subrapcess call.
+# - create binary object, that handles executable setup and checks, parameters
+#   and possibly a subrapcess call,
+# - g:formpy_style would need to be per file type.
 
 class FileTypeException(Exception):
     def __init__(self, file_type):
@@ -37,22 +39,21 @@ class BinaryNotFoundException(Exception):
     def __init__(self, binary):
         self.binary = binary
 
+class FileType(Enum):
+    c = 1
+    python = 2
+    cmake = 3
+
+
 class Binary:
     def __init__(self, file_type):
-        # Validate file type.
         self.file_type = file_type
-        if self.file_type == 'python':
+        if FileType.python == file_type:
             self.binary = 'yapf'
-            self.line_split = "-"
-        elif self.file_type == 'cmake':
-            self.binary = 'cmake-format'
-            self.line_split = "-"
-        elif self.file_type in ['c', 'cpp']:
+        elif FileType.c == file_type:
             self.binary = 'clang-format'
-            self.line_split = ","
-        else:
-            sys.stderr.write(" -------> 2 file_type: {0}\n".format(self.file_type))
-            raise FileTypeException(file_type)
+        elif 'cmake' == file_type:
+            self.binary = 'cmake-format'
 
         # Check if appropriate formatter is available.
         try:
@@ -62,6 +63,27 @@ class Binary:
         except OSError as e:
             raise BinaryNotFoundException(self.binary)
 
+    def constructCommand(self, file_type):
+        line_start = vim.current.range.start + 1
+        line_end = vim.current.range.end + 1
+        command = [self.binary]
+        if FileType.python == file_type:
+            lines = '%s-%s' % (line_start, line_end)
+            style = Formatter.vimEval('g:formpy_style_python')
+            command.extend(['--style', style, '--lines', lines])
+        elif FileType.c == file_type:
+            style = Formatter.vimEval('g:formpy_style_c')
+            lines = '%s:%s' % (line_start, line_end)
+            cursor = int(vim.eval('line2byte(line("."))+col(".")')) - 2
+            if cursor < 0:
+                raise ValueError('Couldn\'t determine cursor position. Is your file empty?')
+            command.extend = ['-style', style, '-lines', lines, '-cursor', str(cursor)]
+        elif 'cmake' == file_type:
+            lines = '%s-%s' % (line_start, line_end)
+            command.extend(['--lines', lines])
+
+        return command
+
 class Formatter:
     """ Formatter - handle all formatting tasks.
 
@@ -70,6 +92,16 @@ class Formatter:
     - communication with yapf.
     """
 
+    @staticmethod
+    def vimEval(name):
+        """ A wrapper around vim eval.
+        Return evaluated expression or None.
+        """
+        if (vim.eval('exists("' + name + '")') == "1"):
+            return vim.eval(name)
+        else:
+            return None
+
     def __init__(self):
         self.lines = None
         self.line_start = None
@@ -77,14 +109,22 @@ class Formatter:
         self.encoding = None
         self.buffer = None
         self.text = None
-        self.cursor = None
         self.formatted_lines = None
-        sys.stderr.write(" -------> woof: {0}\n".format(self.__vimEval('s:formpy_filetype')))
-        self.file_type = self.__vimEval('s:formpy_filetype')
-        self.enable_logging = 1 == self.__vimEval(
+        sys.stderr.write(" -------> woof: {0}\n".format(vimEval('s:formpy_filetype')))
+        self.enable_logging = 1 == vimEval(
             'g:formpy_logging') and os.path.exists("/tmp")
         try:
-            sys.stderr.write(" -------> 1 file_type: {0}\n".format(self.file_type))
+            file_type = vimEval('s:formpy_filetype')
+            sys.stderr.write(" -------> 1 file_type: {0}\n".format(file_type))
+            if 'python' == file_type:
+                self.file_type = FileType.python
+            elif file_type in ['c', 'cpp', 'objc', 'objcpp', 'java', 'javascript', 'proto']:
+                self.file_type = FileType.c
+            elif 'cmake' == file_type:
+                self.file_type = FileType.cmake
+            else:
+                sys.stderr.write(" -------> 2 file_type: {0}\n".format(self.file_type))
+                raise FileTypeException(file_type)
             self.binary = Binary(self.file_type)
         except FileTypeException as fte:
           raise fte
@@ -96,37 +136,12 @@ class Formatter:
         # Only log if on systems that support /tmp dir (and when user asked for
         # it).
 
-    def __vimEval(self, name):
-        """ A wrapper around vim eval.
-        Return evaluated expression or None.
-        """
-        if (vim.eval('exists("' + name + '")') == "1"):
-            return vim.eval(name)
-        else:
-            return None
-
-    def __setLines(self):
-        """ Set up the lines.
-        Establish the line range of the object to be formatted.
-        """
-        self.lines = self.__vimEval('l:lines')
-        if not self.lines:
-            self.line_start = vim.current.range.start + 1
-            self.line_end = vim.current.range.end + 1
-            self.lines = '%s%s%s' % (self.line_start, self.line_split,
-                                     self.line_end)
-
     def __loadBuffer(self):
         """ Load current vim buffer.
         """
-        self.encoding = self.__vimEval('&encoding')
+        self.encoding = vimEval('&encoding')
         self.buffer = vim.current.buffer
         self.text = '\n'.join(self.buffer)
-        self.cursor = int(vim.eval('line2byte(line("."))+col(".")')) - 2
-        if self.cursor < 0:
-            print('Couldn\'t determine cursor position. Is your file empty?')
-            return False
-        return True
 
     def __postProcessDiff(self):
         """ Apply the formatting.
@@ -159,7 +174,6 @@ class Formatter:
         """ Main hook
         Retrieve lines, format the object, apply the changes.
         """
-        self.__setLines()
         self.__loadBuffer()
 
         if self.enable_logging:
@@ -174,13 +188,8 @@ class Formatter:
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = subprocess.SW_HIDE
 
-        # Construct the command.
-        style = self.__vimEval('g:formpy_style')
-        if self.enable_logging:
-            logging.debug(style)
-        command = [self.binary, '--style', style, '--lines', self.lines]
-
-        # Call yapf.
+        # Call the binary.
+        command = self.binary.constructCommand(self.file_type)
         p = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
