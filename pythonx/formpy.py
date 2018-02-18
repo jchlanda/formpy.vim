@@ -19,27 +19,30 @@ import subprocess
 import sys
 import vim
 import logging
-from enum import Enum
 
 # TODO:
 # - errors vs print outs vs raising exceptions,
 # - create binary object, that handles executable setup and checks, parameters
 #   and possibly a subrapcess call,
-# - g:formpy_style would need to be per file type.
+
 
 class FileTypeException(Exception):
     def __init__(self, file_type):
         self.file_type = file_type
+
+
 #try:
 #    raise FileTypeException("Foo!")
 #except FileTypeException as e:
 #    print e.file_type
 
+
 class BinaryNotFoundException(Exception):
     def __init__(self, binary):
         self.binary = binary
 
-class FileType(Enum):
+
+class FileType:
     c = 1
     python = 2
     cmake = 3
@@ -63,9 +66,7 @@ class Binary:
         except OSError as e:
             raise BinaryNotFoundException(self.binary)
 
-    def constructCommand(self, file_type):
-        line_start = vim.current.range.start + 1
-        line_end = vim.current.range.end + 1
+    def constructCommand(self, file_type, line_start, line_end):
         command = [self.binary]
         if FileType.python == file_type:
             lines = '%s-%s' % (line_start, line_end)
@@ -76,13 +77,18 @@ class Binary:
             lines = '%s:%s' % (line_start, line_end)
             cursor = int(vim.eval('line2byte(line("."))+col(".")')) - 2
             if cursor < 0:
-                raise ValueError('Couldn\'t determine cursor position. Is your file empty?')
-            command.extend = ['-style', style, '-lines', lines, '-cursor', str(cursor)]
+                raise ValueError(
+                    'Couldn\'t determine cursor position. Is your file empty?')
+            command.extend = [
+                '-style', style, '-lines', lines, '-cursor',
+                str(cursor)
+            ]
         elif 'cmake' == file_type:
             lines = '%s-%s' % (line_start, line_end)
             command.extend(['--lines', lines])
 
         return command
+
 
 class Formatter:
     """ Formatter - handle all formatting tasks.
@@ -110,26 +116,27 @@ class Formatter:
         self.buffer = None
         self.text = None
         self.formatted_lines = None
-        sys.stderr.write(" -------> woof: {0}\n".format(vimEval('s:formpy_filetype')))
-        self.enable_logging = 1 == vimEval(
+        self.line_start = vim.current.range.start + 1
+        self.line_end = vim.current.range.end + 1
+        self.enable_logging = 1 == Formatter.vimEval(
             'g:formpy_logging') and os.path.exists("/tmp")
         try:
-            file_type = vimEval('s:formpy_filetype')
-            sys.stderr.write(" -------> 1 file_type: {0}\n".format(file_type))
+            file_type = Formatter.vimEval('s:formpy_filetype')
             if 'python' == file_type:
                 self.file_type = FileType.python
-            elif file_type in ['c', 'cpp', 'objc', 'objcpp', 'java', 'javascript', 'proto']:
+            elif file_type in [
+                    'c', 'cpp', 'objc', 'objcpp', 'java', 'javascript', 'proto'
+            ]:
                 self.file_type = FileType.c
             elif 'cmake' == file_type:
                 self.file_type = FileType.cmake
             else:
-                sys.stderr.write(" -------> 2 file_type: {0}\n".format(self.file_type))
                 raise FileTypeException(file_type)
             self.binary = Binary(self.file_type)
         except FileTypeException as fte:
-          raise fte
+            raise fte
         except BinaryNotFoundException as bnfe:
-          raise bnfe
+            raise bnfe
         except Exception as e:
             # TODO: Handle this.
             raise ValueError('Something went wrong\n')
@@ -139,7 +146,7 @@ class Formatter:
     def __loadBuffer(self):
         """ Load current vim buffer.
         """
-        self.encoding = vimEval('&encoding')
+        self.encoding = Formatter.vimEval('&encoding')
         self.buffer = vim.current.buffer
         self.text = '\n'.join(self.buffer)
 
@@ -189,7 +196,8 @@ class Formatter:
             startupinfo.wShowWindow = subprocess.SW_HIDE
 
         # Call the binary.
-        command = self.binary.constructCommand(self.file_type)
+        command = self.binary.constructCommand(self.file_type, self.line_start,
+                                               self.line_end)
         p = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
@@ -222,13 +230,13 @@ def main(argv):
         F = Formatter()
         F.executeFormat()
     except FileTypeException as fte:
-      sys.stderr.write(" -------> FTE: {0}\n".format(fte.file_type))
+        sys.stderr.write(" -------> FTE: {0}\n".format(fte.file_type))
     except BinaryNotFoundException as bnfe:
-      sys.stderr.write(" -------> BNFE: {0}\n".format(bnfe.binary))
-    else:
-        # TODO: Handle this.
+        sys.stderr.write(" -------> BNFE: {0}\n".format(bnfe.binary))
+    except Exception as e:
         raise ValueError('Something went wrong\n')
     pass
+    sys.stderr.write(" -------> SUCCESS\n")
 
 
 if __name__ == "__main__":
