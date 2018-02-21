@@ -22,19 +22,13 @@ import logging
 
 # TODO:
 # - errors vs print outs vs raising exceptions,
-# - create binary object, that handles executable setup and checks, parameters
-#   and possibly a subrapcess call,
+# - add code comments,
+# - decide if to remove loggins.
 
 
 class FileTypeException(Exception):
     def __init__(self, file_type):
         self.file_type = file_type
-
-
-#try:
-#    raise FileTypeException("Foo!")
-#except FileTypeException as e:
-#    print e.file_type
 
 
 class BinaryNotFoundException(Exception):
@@ -206,8 +200,10 @@ class Formatter:
             startupinfo=startupinfo)
         stdout, stderr = p.communicate(input=self.text.encode(self.encoding))
 
+        sys.stderr.write(" -------> stderr is: {0}\n".format(stderr))
         # Report error, or replace the object with formatted version.
         if stderr:
+            # TODO: This is not applicable any more, handle multiple binaries.
             print(
                 "Error while parsing the input file.\n"
                 "'yapf' can only format syntactically correct files.\n",
@@ -231,10 +227,12 @@ def main(argv):
         F.executeFormat()
     except FileTypeException as fte:
         sys.stderr.write(" -------> FTE: {0}\n".format(fte.file_type))
+        sys.exit()
     except BinaryNotFoundException as bnfe:
         sys.stderr.write(" -------> BNFE: {0}\n".format(bnfe.binary))
+        sys.exit()
     except Exception as e:
-        raise ValueError('Something went wrong\n')
+        raise ValueError('Something went wrong in main\n' + str(e))
     pass
     sys.stderr.write(" -------> SUCCESS\n")
 
