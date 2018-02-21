@@ -49,7 +49,7 @@ class Binary:
             self.binary = 'yapf'
         elif FileType.c == file_type:
             self.binary = 'clang-format'
-        elif 'cmake' == file_type:
+        elif FileType.cmake == file_type:
             self.binary = 'cmake-format'
 
         # Check if appropriate formatter is available.
@@ -60,26 +60,20 @@ class Binary:
         except OSError as e:
             raise BinaryNotFoundException(self.binary)
 
-    def constructCommand(self, file_type, line_start, line_end):
+    def constructCommand(self, file_type, line_start, line_end, vim_buffer):
         command = [self.binary]
         if FileType.python == file_type:
             lines = '%s-%s' % (line_start, line_end)
             style = Formatter.vimEval('g:formpy_style_python')
             command.extend(['--style', style, '--lines', lines])
+            # '--style', '{based_on_style: chromium, indent_width: 2}',
         elif FileType.c == file_type:
             style = Formatter.vimEval('g:formpy_style_c')
             lines = '%s:%s' % (line_start, line_end)
-            cursor = int(vim.eval('line2byte(line("."))+col(".")')) - 2
-            if cursor < 0:
-                raise ValueError(
-                    'Couldn\'t determine cursor position. Is your file empty?')
-            command.extend = [
-                '-style', style, '-lines', lines, '-cursor',
-                str(cursor)
-            ]
-        elif 'cmake' == file_type:
+            command.extend(['-style', style, '-lines', lines])
+        elif FileType.cmake == file_type:
             lines = '%s-%s' % (line_start, line_end)
-            command.extend(['--lines', lines])
+            command.extend([vim_buffer.name])
 
         return command
 
@@ -133,7 +127,9 @@ class Formatter:
             raise bnfe
         except Exception as e:
             # TODO: Handle this.
-            raise ValueError('Something went wrong\n')
+            raise ValueError('Something went wrong in Formatter.__init__\n' +
+                             str(e))
+        # TODO: How applicable this is?
         # Only log if on systems that support /tmp dir (and when user asked for
         # it).
 
@@ -143,6 +139,7 @@ class Formatter:
         self.encoding = Formatter.vimEval('&encoding')
         self.buffer = vim.current.buffer
         self.text = '\n'.join(self.buffer)
+        sys.stderr.write(" -------> buffer is: {0}\n".format(self.buffer.name))
 
     def __postProcessDiff(self):
         """ Apply the formatting.
@@ -191,7 +188,8 @@ class Formatter:
 
         # Call the binary.
         command = self.binary.constructCommand(self.file_type, self.line_start,
-                                               self.line_end)
+                                               self.line_end, self.buffer)
+        sys.stderr.write(" -------> command is: {0}\n".format(command))
         p = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
