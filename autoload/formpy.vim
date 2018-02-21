@@ -1,13 +1,14 @@
-" formpy.vim - ClangFormat functionality with YetAnotherPythonFormatter with
-"              text-objects.
+" Multi language formatting with text-objects.
 " Author: Jakub Chlanda <j.chlanda@gmail.com>
-" Version: 0.1
+" Version: 0.2
 " License: This file is placed in the public domain.
 " Source repository: https://github.com/jchlanda/formpy.vim
-" Heavily inspired by: clang-format,
-"                      yapf,
-"                      Fraser Cormack's formative.vim
-"                      (https://github.com/frasercrmck/formative.vim)
+" Inspired by:
+"   Fraser Cormack's formative (https://github.com/frasercrmck/formative.vim)
+" Currently supports:
+" - ClangFormat (https://clang.llvm.org/docs/ClangFormat.html),
+" - yapf (https://github.com/google/yapf),
+" - cmake-format (https://github.com/cheshirekow/cmake_format).
 
 " Initialization {{{
 if !exists("g:loaded_formpy") || &cp
@@ -23,11 +24,7 @@ else
   let s:python_cmd = "py3f "
 endif
 
-" Enable/disable logging.
-if !exists("g:formpy_logging")
-    let g:formpy_logging = 0
-endif
-" Absolute path of script file:
+" Absolute path of the script file:
 let g:formpy_source =
   \ get( g:, "formpy_source", expand("<sfile>:p:h")."/../pythonx/formpy.py")
 " Style for python:
