@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-""" ClangFormat functionality with YetAnotherPythonFormatter with text-objects.
+""" Multi language formatting with text-objects.
 Source repository: https://github.com/jchlanda/formpy.vim
-Heavily inspired by: clang-format,
-                     yapf,
-                     Fraser Cormack's formative.vim
-                     (https://github.com/frasercrmck/formative.vim)
+Inspired by:
+  Fraser Cormack's formative.vim (https://github.com/frasercrmck/formative.vim)
+Currently supports:
+- ClangFormat (https://clang.llvm.org/docs/ClangFormat.html),
+- yapf (https://github.com/google/yapf),
+- cmake-format (https://github.com/cheshirekow/cmake_format).
 """
 __all__ = []
 __version__ = '0.2'
 __author__ = 'Jakub Chlanda'
 __license__ = 'This file is placed in the public domain.'
+__email__ = "j.chlanda@gmail.com"
 
 import difflib
 import json
@@ -67,8 +70,12 @@ class Binary:
     if FileType.python == file_type:
       lines = '%s-%s' % (line_start, line_end)
       style = Formatter.vimEval('g:formpy_style_python')
-      command.extend([ '--style',style, '--lines', lines ])
-      # '--style', '{based_on_style: chromium, indent_width: 2}',
+      command.extend(['--style', style, '--lines', lines])
+      # TODO: Remove
+      # command.extend([
+      #     '--style', '{based_on_style: chromium, indent_width: 2}', '--lines',
+      #     lines
+      # ])
     elif FileType.c == file_type:
       style = Formatter.vimEval('g:formpy_style_c')
       lines = '%s:%s' % (line_start, line_end)
@@ -108,8 +115,6 @@ class Formatter:
     self.formatted_lines = None
     self.line_start = vim.current.range.start + 1
     self.line_end = vim.current.range.end + 1
-    self.enable_logging = 1 == Formatter.vimEval(
-        'g:formpy_logging') and os.path.exists("/tmp")
     try:
       file_type = Formatter.vimEval('s:formpy_filetype')
       if 'python' == file_type:
@@ -148,35 +153,16 @@ class Formatter:
         """
     lines = self.formatted_lines[0:]
     update = difflib.SequenceMatcher(None, vim.current.buffer, lines)
-    if self.enable_logging:
-      for line in lines:
-        logging.debug(line)
     for op in reversed(update.get_opcodes()):
       if op[0] is not 'equal':
         if op[1] in range(self.line_start - 1, self.line_end):
-          if self.enable_logging:
-            logging.debug('updating')
-            logging.debug(lines[op[3]:op[4]])
           vim.current.buffer[op[1]:op[2]] = lines[op[3]:op[4]]
-        else:
-          if self.enable_logging:
-            logging.debug('Not in range {0}, not updating'.format(self.lines))
-            logging.debug(
-                'Vim.current.range.start: {0}'.format(vim.current.range.start))
-            logging.debug(
-                'Vim.current.range.end: {0}'.format(vim.current.range.end))
-            logging.debug(op)
-            logging.debug(lines[op[3]:op[4]])
 
   def executeFormat(self):
     """ Main hook
         Retrieve lines, format the object, apply the changes.
         """
     self.__loadBuffer()
-
-    if self.enable_logging:
-      logging.basicConfig(
-          filename="/tmp/formpy-format.log", level=logging.DEBUG, filemode="w")
 
     startupinfo = None
     if sys.platform.startswith('win32'):
@@ -206,8 +192,6 @@ class Formatter:
           file=sys.stderr)
       return
     if not stdout:
-      if self.enable_logging:
-        logging.debug("Stdout.")
       print(
           "No output from the formatter (crashed?).\nPlease report the bug.\n")
       return
