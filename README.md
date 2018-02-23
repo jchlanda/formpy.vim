@@ -1,6 +1,6 @@
 # formpy.vim
 
-Provides [YAPF](https://github.com/google/yapf) vim integration in the same way as [formative.vim](https://github.com/frasercrmck/formative.vim) integrates [clang-format](http://clang.llvm.org/docs/ClangFormat.html#vim-integration).
+Provides [YAPF](https://github.com/google/yapf), [clang-format](http://clang.llvm.org/docs/ClangFormat.html#vim-integration) and [cmake-format](https://github.com/cheshirekow/cmake_format) vim integration. The vim side of the plugin is an extension of [formative.vim](https://github.com/frasercrmck/formative.vim) integrates.
 
 The plugin supports the same set of actions as [formative.vim](https://github.com/frasercrmck/formative.vim), for example:
 
@@ -8,21 +8,14 @@ The plugin supports the same set of actions as [formative.vim](https://github.co
     <C-k>ap   - YAPF around the current paragraph
     <C-k>/foo - YAPF from the current line until the first match of 'foo'
 
-The only limitations come from python's syntax, so a valid [formative.vim](https://github.com/frasercrmck/formative.vim) action:
+The only limitations come from language syntax, so a valid [formative.vim](https://github.com/frasercrmck/formative.vim) action:
 
     <C-k>iB   - ClangFormat "inner Block"
-would still pass the block to [YAPF](https://github.com/google/yapf), but will have slightly different range.
-
-#### Formpy-Formative Integration
-
-[formative.vim](https://github.com/frasercrmck/formative.vim) is great, in fact it is so good, that I had to write this plugin. Once you start using [formative.vim](https://github.com/frasercrmck/formative.vim), there is no way back, you have to have formatting done automatically for you. And it is XXI century, the time of manually inserting spaces (no tabs, no!) is over. The problem arises, when you get used to the mappings provided by [formative.vim](https://github.com/frasercrmck/formative.vim) and want to have the same mappings working in python. By default, whichever plugin is loaded last will, be responsible for formatting, regardless of the buffer's filetype. The solution provided here, is to have the desired mappings redefined in [after-directory](https://github.com/jchlanda/formpy.vim/tree/master/after/ftplugin). It provides the mappings for `python` filetype only, letting [formative](https://github.com/frasercrmck/formative.vim) take care of `c`-language family filetypes.
-
-An example of two buffers (`cpp` and `py`) calling into [formative.vim](https://github.com/frasercrmck/formative.vim) and formpy respectively.
-![](https://raw.githubusercontent.com/jchlanda/formpy.vim/gif/assets/formpy_cpp_py.640.gif)
+when dealing with python file would still pass the block to [YAPF](https://github.com/google/yapf), but will have slightly different range.
 
 #### Requirements
 
-Unlike [formative.vim](https://github.com/frasercrmck/formative.vim), formpy comes with its own python runner, so ther is no need to point it to any external files. However, you will have to make sure that [YAPF](https://github.com/google/yapf) is installed and available on the path of your system. Formpy also requires vim compiled with python support.
+Unlike [formative.vim](https://github.com/frasercrmck/formative.vim), formpy comes with its own python runner, so there is no need to point it to any external files. However, you will have to make sure that for each supported formatter a corresponding binary is installed (ptyhon: [YAPF](https://github.com/google/yapf), C/C++/Java/JavaScript/Objective-C/Protobuf: [clang-format](http://clang.llvm.org/docs/ClangFormat.html#vim-integration), CMake: [cmake-format](https://github.com/cheshirekow/cmake_format)) is installed and available on the path of your system. Formpy also requires vim compiled with python support.
 
 #### Key Bindings
 
@@ -30,7 +23,15 @@ As per [formative.vim](https://github.com/frasercrmck/formative.vim) \<C-k> is s
 
 #### Special Bindings
 
-Again, as per [formative.vim](https://github.com/frasercrmck/formative.vim), 'quick' [YAPF](https://github.com/google/yapf) binding is provided via `g:formpy_line_key`. This works on the current line alone. Its default mapping is `<C-k>k`, which is designed to emulate vim's `c -> cc`, `d -> dd` line-wise operations. `<C-k>u` is used to invoke [YAPF](https://github.com/google/yapf) on the whole file, and can be reset with `g:fmtv_clang_format_file_key`.
+Again, as per [formative.vim](https://github.com/frasercrmck/formative.vim), 'quick' formatting binding is provided via `g:formpy_line_key`. This works on the current line alone. Its default mapping is `<C-k>k`, which is designed to emulate vim's `c -> cc`, `d -> dd` line-wise operations. `<C-k>u` is used to invoke the formatter on the whole file, and can be reset with `g:fmtv_clang_format_file_key`.
+
+TODO: JKB:
+- document the following:
+    let g:formpy_style_python = get( g:, "formpy_style_python", "pep8")
+    let g:formpy_style_c = get( g:, "formpy_style_c", "LLVM")
+- add: g:fmtv_clang_format_file_key
+- update giphys.
+
 
 #### [GIPHY](https://giphy.com/)
 
