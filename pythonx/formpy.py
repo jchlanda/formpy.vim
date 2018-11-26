@@ -145,7 +145,6 @@ class Formatter:
     self.encoding = Formatter.vimEval('&encoding')
     self.buffer = vim.current.buffer
     self.text = '\n'.join(self.buffer)
-    sys.stderr.write(" -------> buffer is: {0}\n".format(self.buffer.name))
 
   def __postProcessDiff(self):
     """ Apply the formatting.
@@ -173,7 +172,6 @@ class Formatter:
     # Call the binary.
     command = self.binary.constructCommand(self.file_type, self.line_start,
                                            self.line_end, self.buffer)
-    sys.stderr.write(" -------> command is: {0}\n".format(command))
     p = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -182,7 +180,6 @@ class Formatter:
         startupinfo=startupinfo)
     stdout, stderr = p.communicate(input=self.text.encode(self.encoding))
 
-    sys.stderr.write(" -------> stderr is: {0}\n".format(stderr))
     # Report error, or replace the object with formatted version.
     if stderr:
       # TODO: This is not applicable any more, handle multiple binaries.
@@ -213,7 +210,6 @@ def main(argv):
   except Exception as e:
     raise ValueError('Something went wrong in main\n' + str(e))
   pass
-  sys.stderr.write(" -------> SUCCESS\n")
 
 
 if __name__ == "__main__":

@@ -14,8 +14,8 @@ if exists("g:loaded_formpy") || &cp
   finish
 endif
 
-if !has("python")
-  echoerr "formpy reuires Python to be enabled."
+if !has("python") && !has("python3")
+  echoerr "formpy requires Python to be enabled."
 endif
 
 let g:loaded_formpy = 1
