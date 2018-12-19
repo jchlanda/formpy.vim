@@ -69,13 +69,20 @@ class Binary:
     command = [self.binary]
     if FileType.python == file_type:
       lines = '%s-%s' % (line_start, line_end)
-      style = Formatter.vimEval('g:formpy_style_python')
-      command.extend(['--style', style, '--lines', lines])
-      # TODO: Remove
-      # command.extend([
-      #     '--style', '{based_on_style: chromium, indent_width: 2}', '--lines',
-      #     lines
-      # ])
+#       style = Formatter.vimEval('g:formpy_style_python')
+#       command.extend(['--style', style, '--lines', lines])
+#     TODO: 
+      # TODO: extra line at the end of the file, makes the formatting go wrong (removes part of the code):
+# BEGIN
+#class Perceptron(object):
+#    def predict(self, X):
+#        return np.where(self.net_input(X) >= 0.0, 1, -1)
+#
+# END
+      command.extend([
+          '--style', '{based_on_style: google, indent_width: 2}', '--lines',
+          lines
+      ])
     elif FileType.c == file_type:
       style = Formatter.vimEval('g:formpy_style_c')
       lines = '%s:%s' % (line_start, line_end)
